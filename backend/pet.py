@@ -77,7 +77,6 @@ def get() -> dict:
         hours = (time.time() - state["updated"]) / 3600
         state["happiness"] = max(0.0, state["happiness"] - hours * HAPPINESS_DECAY_PER_HOUR)
         state["updated"] = time.time()
-        save(state)
         return state
 
 
