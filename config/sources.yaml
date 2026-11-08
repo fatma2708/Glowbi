@@ -1,0 +1,125 @@
+# Where Glowbi gets her knowledge 🍽️  (checked November 2026)
+# Every source here is either an RSS feed / sitemap whose robots.txt allows bots, or an open-licensed database.
+# Before adding anything new:  python -m scripts.feed --test <url>
+# Personal, non-commercial use. Answers keep the source URL internally (API `sources` field) for attribution.
+
+max_items_per_feed: 10
+
+# ───────────────────────────── BLOGS (RSS) ─────────────────────────────
+rss_feeds:
+  # Michelle Wong, PhD chemist & cosmetic chemist. Skincare, sunscreen, makeup and hair science. Very active.
+  # Feed = summaries only, so the scraper opens each article (robots.txt allows it).
+  - name: Lab Muffin Beauty Science
+    url: https://labmuffin.com/feed/
+    category: auto
+    backfill_pages: 30          # first run reads ~300 older posts via ?paged=N, then only new ones
+
+  # Stephen Alain Ko, cosmetic chemist. Advanced, evidence-based skincare. Inactive since 2022, but evergreen
+  # and the feed carries full article text.
+  # DISABLED 2026-11-07: site is down. Feed and robots.txt both return 503 ("Offline Site", temporarily disabled
+  # by its host). Not a bot block: uncomment when `--test` passes again.
+  # - name: Kind of Stephen
+  #   url: https://kindofstephen.com/feed/
+  #   category: skincare
+  #   backfill_pages: 10
+
+  # Marina, cosmetic chemist (Substack). Recent, ingredient-focused deep dives. Some posts are paywalled, and
+  # only the free part is stored.
+  - name: 4COMPLEXION
+    url: https://4complexion.substack.com/feed
+    category: skincare
+
+  # Tonya Lane, cosmetic chemist. Curly/coily hair science. Shopify blog (~68 posts), Atom feed with full text,
+  # latest 30 only. Also a brand site, so some posts promote its own products. Tested 2026-11-07.
+  - name: Curly Chemistry
+    url: https://curlychemistry.com/blogs/blog.atom
+    category: hair
+
+  # Formulation science, more for chemists than consumers. Feed = summaries, so the scraper opens each article.
+  # Tested 2026-11-07.
+  - name: Chemists Corner
+    url: https://chemistscorner.com/feed/
+    category: auto
+
+# ───────────────────────────── BLOGS WITHOUT RSS (sitemaps) ─────────────────────────────
+sitemaps:
+  # Gloria Lu & Victoria Fu, cosmetic chemists ("Skincare Decoded"). 100s of beginner-friendly explainers:
+  # actives, routines, skin types. robots.txt allows /blogs/.
+  - name: Chemist Confessions
+    url: https://chemistconfessions.com/sitemap.xml
+    include: "/blogs/(?!categories/)[^/?#]+$"
+    category: skincare
+    max_items: 25               # per feeding (every 12h) until the archive is eaten
+
+# ───────────────────────────── ONE-OFF PAGES ─────────────────────────────
+pages: []
+  # Add evergreen guides here, e.g. a hair-care or nail-care explainer you trust:
+  # - url: https://example.com/guide
+  #   category: hair
+
+# ───────────────────────────── CANDIDATES (test first, then move up) ─────────────────────────────
+# Tested 2026-11-07. Curly Chemistry and Chemists Corner passed and moved up to rss_feeds. Still out:
+#   https://www.thenaturalhavenbloom.com/feeds/posts/default   403 on feed AND robots.txt (blocks bots)
+#   https://www.naturallycurly.com/curlreading                 redirects to beautycon.com, which returns 403
+# Avoid: DermNet (terms forbid automated harvesting), EWG Skin Deep, INCIDecoder, SkinSort, Paula's Choice
+#        (no-scraping terms / no open licence), Science-y Hey (robots.txt blocks bots).
+
+# ───────────────────────────── OPEN BEAUTY FACTS (live search API, light) ─────────────────────────────
+open_beauty_facts:
+  enabled: false                # superseded by the nightly dump below; turn on for quick tests
+  search_terms: [sunscreen, moisturizer, cleanser, serum, shampoo]
+  products_per_term: 15
+
+# ───────────────────────────── DATABASES ─────────────────────────────
+databases:
+  # Open Beauty Facts nightly export (ODbL). Products + full INCI lists. Streamed: stops after max_products,
+  # no need to download the full multi-GB file.
+  open_beauty_facts_dump:
+    enabled: true
+    max_products: 3000
+    countries: []               # e.g. ["en:france", "en:tunisia"] to prefer products sold there
+    refresh_days: 30
+
+  # Official EU ingredient inventory (CosIng) via the free CosIng Checker API (CC BY 4.0, 120 req/min):
+  # INCI name, what the ingredient does, EU restrictions, plus the regulated fragrance allergens list.
+  cosing:
+    enabled: true
+    refresh_days: 90
+    ingredients: [niacinamide, retinol, retinal, adapalene, tretinoin, ascorbic acid, ascorbyl glucoside,
+      sodium ascorbyl phosphate, tocopherol, ferulic acid, glycolic acid, lactic acid, mandelic acid,
+      salicylic acid, gluconolactone, azelaic acid, benzoyl peroxide, sulfur, tranexamic acid, alpha-arbutin,
+      kojic acid, hydroquinone, licorice, bakuchiol, hyaluronic acid, sodium hyaluronate, glycerin, urea,
+      panthenol, allantoin, centella asiatica, madecassoside, ceramide np, cholesterol, squalane, shea butter,
+      dimethicone, petrolatum, zinc oxide, titanium dioxide, avobenzone, octocrylene, bemotrizinol,
+      ethylhexyl methoxycinnamate, homosalate, zinc pyrithione, ketoconazole, piroctone olamine, caffeine,
+      minoxidil, biotin, keratin, argan oil, coconut oil, castor oil, phenoxyethanol, methylparaben, parfum,
+      linalool, limonene, lanolin, sodium lauryl sulfate, cocamidopropyl betaine, propylene glycol, alcohol denat,
+      copper tripeptide-1, palmitoyl tripeptide-1, acetyl hexapeptide-8, snail secretion filtrate, propolis]
+
+  # MedlinePlus (US National Library of Medicine). Free, attribute "MedlinePlus.gov". Gives Glowbi reliable
+  # medical basics so she knows when to send you to a dermatologist.
+  medlineplus:
+    enabled: true
+    refresh_days: 60
+    terms: [acne, rosacea, eczema, psoriasis, hives, sunburn, skin cancer, melanoma, sun protection, hair loss,
+      dandruff, seborrheic dermatitis, nail diseases, fungal nail infection, vitiligo, skin pigmentation disorders,
+      contact dermatitis, wrinkles, warts, cold sores, dry skin, itching, moles, scars, birthmarks, stretch marks]
+
+  # Makeup API (free, no key). ~900 makeup products with descriptions, tags (vegan, organic…), shades and
+  # prices. The data is a few years old: good for product types, less for current launches.
+  makeup_api:
+    enabled: true
+    refresh_days: 180
+    per_type: 60
+    product_types: [foundation, blush, bronzer, eyeliner, eyeshadow, lipstick, lip_liner, mascara, nail_polish, eyebrow]
+
+  # Datasets you download yourself (Kaggle needs a login). Example: "Sephora Products and Skincare Reviews"
+  # (kaggle.com/datasets/nadyinky/sephora-products-and-skincare-reviews) → put product_info.csv in data/datasets/
+  local_csv:
+    - path: data/datasets/product_info.csv
+      enabled: true             # skipped automatically if the file isn't there
+      source: Sephora (Kaggle)
+      category: products
+      limit: 9000
+      columns: {id: product_id, name: product_name, brand: brand_name, ingredients: ingredients,
+                highlights: highlights, category: secondary_category, price: price_usd, rating: rating}

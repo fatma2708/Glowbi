@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+data/glowbi.db
+data/pet_state.json
+data/datasets/
+data/feed_state.json
+data/tts_cache/
+data/tts_models/
+data/sfx/
+data/routine_tips.json

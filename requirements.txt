@@ -1,0 +1,22 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+httpx>=0.27
+feedparser>=6.0
+trafilatura>=1.8
+beautifulsoup4>=4.12
+rank_bm25>=0.2.2
+numpy>=1.26
+pyyaml>=6.0
+python-dotenv>=1.0
+python-multipart>=0.0.9
+
+# Optional but recommended: semantic search (multilingual EN/FR)
+# sentence-transformers>=2.7
+
+# Optional: server-side speech-to-text (Whisper, runs locally) for Firefox/Safari/Brave or STT_MODE=server
+# faster-whisper>=1.0
+
+# Tests: pip install pytest
+
+# Default voice (TTS_ENGINE=kokoro), local and free. Model + voices (~350 MB) download on first use
+kokoro-onnx>=0.6

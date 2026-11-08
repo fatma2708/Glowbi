@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Glowbi</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path fill=%22%23f58fab%22 d=%22M50 5C60 25 85 45 85 68a35 32 0 0 1-70 0C15 45 40 25 50 5z%22/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="stat">
+      <span class="stat-label"><span data-en="Lv" data-fr="Niv.">Lv</span> <b id="lvl">1</b></span>
+      <div class="bar"><div id="xpBar" class="fill xp"></div></div>
+    </div>
+    <div class="stat">
+      <span class="stat-label" data-en="Mood" data-fr="Humeur">Mood</span>
+      <div class="bar"><div id="happyBar" class="fill happy"></div></div>
+    </div>
+    <div class="stat"><span class="stat-label"><span data-en="Coins" data-fr="Pièces">Coins</span> <b id="coins">0</b></span></div>
+    <button class="icon-btn" id="profileBtn" data-icon="user" data-title-en="About me" data-title-fr="Mon profil" aria-label="About me" title="About me"></button>
+  </header>
+
+  <main class="stage">
+    <nav class="side-tools">
+      <button class="icon-btn" id="wardrobeBtn" data-icon="hanger" data-title-en="Wardrobe" data-title-fr="Garde-robe" aria-label="Wardrobe" title="Wardrobe"></button>
+      <button class="icon-btn" id="routineBtn" data-icon="drop" data-title-en="Routine" data-title-fr="Routine" aria-label="Routine" title="Routine"></button>
+      <button class="icon-btn" id="soundBtn" data-icon="note" data-title-en="Music and sounds" data-title-fr="Musique et sons" aria-label="Music and sounds" title="Music and sounds"></button>
+    </nav>
+    <div id="bubble" class="bubble hidden">
+      <div id="progress" class="progress hidden"><div id="progressFill"></div></div>
+      <p id="bubbleText"></p>
+      <div id="chips" class="chips"></div>
+    </div>
+
+    <div id="productCards" class="product-cards hidden"></div>
+    <section id="checkCard" class="check-card hidden" aria-live="polite"></section>
+
+    <div id="petWrap" class="pet-wrap">
+      <svg id="pet" data-emotion="happy" viewBox="0 0 200 230" role="img" aria-label="Glowbi the beauty pet">
+        <defs>
+          <radialGradient id="bodyGrad" cx="40%" cy="35%" r="75%">
+            <stop offset="0%" style="stop-color: var(--pet-1)" />
+            <stop offset="55%" style="stop-color: var(--pet-2)" />
+            <stop offset="100%" style="stop-color: var(--pet-3)" />
+          </radialGradient>
+          <linearGradient id="crownGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffe9a8" /><stop offset="100%" stop-color="#f2b84b" />
+          </linearGradient>
+        </defs>
+
+        <ellipse class="shadow" cx="100" cy="218" rx="52" ry="8" />
+
+        <g id="body">
+          <!-- feet -->
+          <ellipse cx="74" cy="206" rx="15" ry="9" style="fill: var(--pet-3)" />
+          <ellipse cx="126" cy="206" rx="15" ry="9" style="fill: var(--pet-3)" />
+          <!-- arms -->
+          <ellipse class="arm arm-l" cx="40" cy="150" rx="11" ry="17" style="fill: var(--pet-arm)" />
+          <ellipse class="arm arm-r" cx="160" cy="150" rx="11" ry="17" style="fill: var(--pet-arm)" />
+          <!-- dewdrop body -->
+          <path d="M100 18 C 120 52, 168 92, 168 140 C 168 182, 138 208, 100 208 C 62 208, 32 182, 32 140 C 32 92, 80 52, 100 18 Z"
+                fill="url(#bodyGrad)" />
+          <!-- glossy highlights -->
+          <ellipse cx="68" cy="102" rx="11" ry="20" fill="#fff" opacity=".55" transform="rotate(25 68 102)" />
+          <circle cx="80" cy="76" r="4" fill="#fff" opacity=".7" />
+
+          <!-- accessories (unlocked by level) -->
+          <!-- cheeks -->
+          <ellipse class="cheek" cx="62" cy="152" rx="13" ry="7" />
+          <ellipse class="cheek" cx="138" cy="152" rx="13" ry="7" />
+
+          <!-- eyes -->
+          <g id="eyes">
+            <g class="eyes eyes-normal"></g>
+            <g class="eyes eyes-closed">
+              <path d="M63 130 q11 -12 22 0" /><path d="M115 130 q11 -12 22 0" />
+            </g>
+            <g class="eyes eyes-star">
+              <path d="M74 114 l4 10 l10 1 l-8 7 l3 10 l-9 -6 l-9 6 l3 -10 l-8 -7 l10 -1 z" fill="#ffd66b" stroke="#e8a92e" stroke-width="1.5"/>
+              <path d="M126 114 l4 10 l10 1 l-8 7 l3 10 l-9 -6 l-9 6 l3 -10 l-8 -7 l10 -1 z" fill="#ffd66b" stroke="#e8a92e" stroke-width="1.5"/>
+            </g>
+            <g class="eyes eyes-heart">
+              <path d="M74 140 l-11 -11 a6.5 6.5 0 0 1 11 -8 a6.5 6.5 0 0 1 11 8 z" fill="#ff4f86" />
+              <path d="M126 140 l-11 -11 a6.5 6.5 0 0 1 11 -8 a6.5 6.5 0 0 1 11 8 z" fill="#ff4f86" />
+            </g>
+            <g class="eyes eyes-sleepy">
+              <path d="M63 131 q11 6 22 0" /><path d="M115 131 q11 6 22 0" />
+            </g>
+          </g>
+          <!-- brows (worried / thinking) -->
+          <g class="brows">
+            <path d="M64 106 q10 -6 20 -2" /><path d="M116 104 q10 -4 20 2" />
+          </g>
+
+          <!-- mouths -->
+          <g id="mouths">
+            <path class="mouth mouth-smile" d="M90 156 q10 10 20 0" />
+            <path class="mouth mouth-worried" d="M90 162 q10 -7 20 0" />
+            <ellipse class="mouth mouth-open" cx="100" cy="160" rx="9" ry="8" />
+            <ellipse class="mouth mouth-o" cx="100" cy="160" rx="6" ry="7" />
+            <path class="mouth mouth-grin" d="M86 154 q14 18 28 0 z" />
+          </g>
+
+          <!-- routine quest effects -->
+          <path id="fxGloss" class="fx-gloss" d="M56 112 q14 -18 34 -18 q-22 8 -28 30 z M128 96 q20 6 24 28 q-10 -18 -28 -24 z" />
+          <g id="fxFoam" class="fx-foam"><circle cx="70" cy="108" r="11"/><circle cx="90" cy="100" r="13"/><circle cx="112" cy="101" r="12"/><circle cx="132" cy="110" r="11"/>
+            <circle cx="56" cy="150" r="10"/><circle cx="144" cy="152" r="10"/><circle cx="74" cy="176" r="10"/><circle cx="100" cy="182" r="12"/><circle cx="126" cy="176" r="10"/></g>
+
+          <!-- wardrobe slots -->
+          <g id="slot-neck" class="slot"></g>
+          <g id="slot-hand" class="slot"></g>
+          <g id="slot-face" class="slot"></g>
+          <g id="slot-head" class="slot"></g>
+          <g id="fxTowel"></g>
+        </g>
+
+        <!-- sparkles (unlocked) -->
+        <g class="acc acc-sparkles">
+          <path class="spk s1" d="M24 70 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 z" />
+          <path class="spk s2" d="M176 96 l2.5 6 l6 2.5 l-6 2.5 l-2.5 6 l-2.5 -6 l-6 -2.5 l6 -2.5 z" />
+          <path class="spk s3" d="M166 40 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" />
+        </g>
+        <!-- thinking dots -->
+        <g class="think-dots"><circle cx="160" cy="58" r="4" /><circle cx="172" cy="42" r="6" /><circle cx="188" cy="22" r="8" /></g>
+        <!-- zzz -->
+        <text class="zzz" x="150" y="60">z<tspan dx="4" dy="-10">Z</tspan></text>
+      </svg>
+      <div id="tickleMeter" class="tickle-meter hidden" aria-hidden="true"><div id="tickleFill"></div></div>
+      <div id="flyLayer" class="fly-layer" aria-hidden="true"></div>
+      <div id="floaters" class="floaters" aria-hidden="true"></div>
+    </div>
+
+    <div id="heard" class="heard hidden"><span class="rec-dot"></span><span id="heardText"></span></div>
+    <div id="toast" class="toast hidden"></div>
+  </main>
+
+  <footer class="controls">
+    <div id="routineBar" class="routine-bar hidden">
+      <div class="routine-top">
+        <div id="routineModes" class="segmented">
+          <button type="button" data-mode="morning" data-en="Morning" data-fr="Matin">Morning</button>
+          <button type="button" data-mode="night" data-en="Night" data-fr="Soir">Night</button>
+        </div>
+        <span id="routineProgress" class="muted"></span>
+        <button type="button" id="routineClose" class="icon-btn small" data-icon="close" data-size="16" data-title-en="Close" data-title-fr="Fermer" aria-label="Close" title="Close"></button>
+      </div>
+      <div id="routineProducts" class="products"></div>
+    </div>
+    <form id="chatForm" class="chat-form">
+      <input id="msg" autocomplete="off" aria-label="Message" placeholder="Ask about skin, makeup, hair…" />
+      <button type="button" id="photoBtn" class="round mic" data-icon="camera" data-title-en="Photo of skin, hair or a label. Photos are sent to Groq to be read, and never stored here" data-title-fr="Photo de peau, de cheveux ou d'étiquette. Les photos sont envoyées à Groq pour être lues, et jamais conservées ici" aria-label="Add a photo" title="Add a photo"></button>
+      <input type="file" id="photoInput" accept="image/*" hidden />
+      <button type="button" id="micBtn" class="round mic" data-icon="mic" data-title-en="Talk to {pet}" data-title-fr="Parler à {pet}" aria-label="Talk to Glowbi" title="Talk to Glowbi"></button>
+      <button type="submit" class="round send" data-icon="send" data-title-en="Send" data-title-fr="Envoyer" aria-label="Send" title="Send"></button>
+    </form>
+    <div class="row-small">
+      <button id="langBtn" class="mini">EN</button>
+      <button id="voiceBtn" class="mini"></button>
+      <button id="logBtn" class="mini" data-icon="chat" data-size="16"><span data-en="Chat log" data-fr="Historique">Chat log</span></button>
+    </div>
+  </footer>
+
+  <aside id="wardrobe" class="wardrobe hidden">
+    <div class="panel-head">
+      <h3 data-en="Wardrobe" data-fr="Garde-robe">Wardrobe</h3>
+      <button type="button" id="wardrobeClose" class="icon-btn small" data-icon="close" data-size="16" data-title-en="Close" data-title-fr="Fermer" aria-label="Close" title="Close"></button>
+    </div>
+    <div id="wardrobeTabs" class="tabs">
+      <button type="button" data-tab="accessories" data-en="Accessories" data-fr="Accessoires">Accessories</button>
+      <button type="button" data-tab="eyes" data-en="Eyes" data-fr="Yeux">Eyes</button>
+      <button type="button" data-tab="colors" data-en="Colors" data-fr="Couleurs">Colors</button>
+      <button type="button" data-tab="voice" data-en="Voice" data-fr="Voix">Voice</button>
+    </div>
+    <div id="wardrobeBody" class="wardrobe-body"></div>
+    <div class="panel-foot">
+      <button type="button" id="randomizeBtn" class="mini" data-icon="shuffle" data-size="16"><span data-en="Randomize" data-fr="Au hasard">Randomize</span></button>
+      <button type="button" id="resetBtn" class="mini" data-icon="refresh" data-size="16"><span data-en="Reset" data-fr="Réinitialiser">Reset</span></button>
+    </div>
+  </aside>
+
+  <aside id="soundPanel" class="sound-panel hidden">
+    <h3 data-en="Music and sounds" data-fr="Musique et sons">Music and sounds</h3>
+    <label class="check"><input type="checkbox" id="musicOn" /><span data-en="Music" data-fr="Musique">Music</span></label>
+    <label><span data-en="Track" data-fr="Morceau">Track</span>
+      <select id="musicTrack"><option value="generated" data-en="Music box (generated)" data-fr="Boîte à musique (générée)">Music box (generated)</option></select></label>
+    <label><span data-en="Music volume" data-fr="Volume de la musique">Music volume</span><input id="musicVolume" type="range" min="0" max="1" step="0.01" /></label>
+    <label><span data-en="Sound effects" data-fr="Effets sonores">Sound effects</span><input id="sfxVolume" type="range" min="0" max="1" step="0.01" /></label>
+  </aside>
+
+  <aside id="log" class="drawer hidden"><h3 data-en="Our chats" data-fr="Nos discussions">Our chats</h3><div id="logList"></div></aside>
+
+  <dialog id="profileDlg">
+    <form method="dialog" id="profileForm">
+      <h3 data-en="Tell {pet} about you" data-fr="Parle de toi à {pet}">Tell Glowbi about you</h3>
+      <label><span data-en="Your name" data-fr="Ton prénom">Your name</span><input name="user_name" maxlength="24" autocomplete="off" /></label>
+      <label><span data-en="Your pet's name" data-fr="Le nom de ton animal">Your pet's name</span><input name="pet_name" maxlength="24" autocomplete="off" /></label>
+      <label><span data-en="Skin type" data-fr="Type de peau">Skin type</span>
+        <select name="skin_type">
+          <option value="" data-en="I don't know" data-fr="Je ne sais pas">I don't know</option>
+          <option value="oily" data-en="Oily" data-fr="Grasse">Oily</option>
+          <option value="dry" data-en="Dry" data-fr="Sèche">Dry</option>
+          <option value="combination" data-en="Combination" data-fr="Mixte">Combination</option>
+          <option value="sensitive" data-en="Sensitive" data-fr="Sensible">Sensitive</option>
+          <option value="normal" data-en="Normal" data-fr="Normale">Normal</option></select></label>
+      <label><span data-en="Hair type" data-fr="Type de cheveux">Hair type</span>
+        <select name="hair_type">
+          <option value="">—</option>
+          <option value="straight" data-en="Straight" data-fr="Lisses">Straight</option>
+          <option value="wavy" data-en="Wavy" data-fr="Ondulés">Wavy</option>
+          <option value="curly" data-en="Curly" data-fr="Bouclés">Curly</option>
+          <option value="coily" data-en="Coily" data-fr="Crépus">Coily</option></select></label>
+      <label><span data-en="Concerns" data-fr="Préoccupations">Concerns</span>
+        <input name="concerns" data-ph-en="acne, dark spots, frizz" data-ph-fr="acné, taches, frisottis" placeholder="acne, dark spots, frizz" /></label>
+      <label><span data-en="Ingredients to avoid" data-fr="Ingrédients à éviter">Ingredients to avoid</span>
+        <input name="avoid" data-ph-en="fragrance, lanolin" data-ph-fr="parfum, lanoline" placeholder="fragrance, lanolin" /></label>
+      <div class="dlg-actions">
+        <button value="redo" class="mini" data-icon="refresh" data-size="16"><span data-en="Redo the get-to-know-you chat" data-fr="Refaire la discussion de départ">Redo the get-to-know-you chat</span></button>
+        <span class="spacer"></span>
+        <button value="cancel" class="mini" data-en="Cancel" data-fr="Annuler">Cancel</button>
+        <button value="save" class="pill" data-en="Save" data-fr="Enregistrer">Save</button></div>
+    </form>
+  </dialog>
+
+  <script src="/static/icons.js"></script>
+  <script src="/static/audio.js"></script>
+  <script src="/static/wardrobe.js"></script>
+  <script src="/static/game.js?v=2"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

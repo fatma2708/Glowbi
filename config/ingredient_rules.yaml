@@ -1,0 +1,101 @@
+# Rules for the ingredient checker (backend/ingredients.py). Honest, not scary: synthetic is not bad, natural is not safe.
+# severity: info = good to know, amber = may matter for you. Red is only ever your own avoid list.
+
+aliases:
+  parfum: fragrance
+  perfume: fragrance
+  aroma: fragrance
+  aqua: water
+  eau: water
+  alcohol denat: denatured alcohol
+  sd alcohol: denatured alcohol
+  sd alcohol 40: denatured alcohol
+  cocos nucifera oil: coconut oil
+  theobroma cacao seed butter: cocoa butter
+  theobroma cacao butter: cocoa butter
+  triticum vulgare germ oil: wheat germ oil
+  mentha piperita oil: peppermint oil
+  juglans regia shell powder: walnut shell
+  prunus armeniaca seed powder: apricot kernel
+  ascorbic acid: vitamin c
+  sodium ascorbyl phosphate: vitamin c
+  ascorbyl glucoside: vitamin c
+  magnesium ascorbyl phosphate: vitamin c
+
+# Ingredients that need no EU lookup: it saves time and API calls
+common_base: [water, glycerin, butylene glycol, propylene glycol, dimethicone, cetearyl alcohol, cetyl alcohol, stearic acid, citric acid, tocopherol, xanthan gum]
+
+categories:
+  pore_clogging_suspects:
+    applies_to: acne_prone   # only flagged for oily or acne-prone skin
+    severity: amber
+    label: {en: "Pore-clogging suspect", fr: "Peut boucher les pores"}
+    note:
+      en: "Comedogenic ratings come from old rabbit-ear tests and are unreliable. The finished formula matters more, so this is a heads-up, not a verdict."
+      fr: "Les notes de comédogénicité viennent de vieux tests sur oreilles de lapin, peu fiables. La formule finale compte plus : c'est une info, pas un verdict."
+    terms: [isopropyl myristate, isopropyl palmitate, isopropyl isostearate, myristyl myristate, ethylhexyl palmitate, laureth-4, acetylated lanolin,
+            coconut oil, cocoa butter, wheat germ oil, carrageenan, chondrus crispus, algae extract, sodium lauryl sulfate]
+
+  fragrance_and_allergens:
+    severity: info
+    amber_if: sensitive      # matters more for reactive skin
+    label: {en: "Fragrance or allergen", fr: "Parfum ou allergène"}
+    note:
+      en: "Fine for most people, but a common trigger for reactive skin. EU rules require these to be listed."
+      fr: "Sans souci pour la plupart des gens, mais un déclencheur fréquent pour les peaux réactives. L'UE impose de les indiquer."
+    terms: [fragrance, essential oil, linalool, limonene, citronellol, geraniol, eugenol, coumarin, citral, benzyl alcohol, benzyl salicylate,
+            hexyl cinnamal, farnesol, cinnamal, isoeugenol, lavender oil, tea tree oil]
+
+  potential_irritants:
+    severity: info
+    amber_if: sensitive
+    label: {en: "Possible irritant", fr: "Irritant possible"}
+    note:
+      en: "Depends on the amount and your skin. Many people use these without any problem."
+      fr: "Ça dépend de la dose et de ta peau. Beaucoup de gens les utilisent sans souci."
+    terms: [denatured alcohol, menthol, peppermint oil, lemon oil, orange oil, bergamot oil, lime oil, walnut shell, apricot kernel]
+    high_in_list_only: [denatured alcohol]    # low down the list it's usually just a solvent
+
+actives_to_know:
+  retinoids:
+    terms: [retinol, retinal, retinaldehyde, retinyl palmitate, tretinoin, adapalene, hydroxypinacolone retinoate]
+    explain:
+      en: "A retinoid: smooths texture and fine lines, but can irritate at first and makes skin more sun-sensitive. Use at night with sunscreen by day. If pregnant, ask a doctor."
+      fr: "Un rétinoïde : lisse le grain de peau et les ridules, peut irriter au début et sensibilise au soleil. Le soir, avec une crème solaire le jour. Enceinte : demande à ton médecin."
+  ahas:
+    terms: [glycolic acid, lactic acid, mandelic acid, tartaric acid, malic acid]
+    explain:
+      en: "An AHA: exfoliates the surface for glow and smoother skin, and raises sun sensitivity, so wear sunscreen."
+      fr: "Un AHA : exfolie la surface pour plus d'éclat, et sensibilise au soleil, donc crème solaire obligatoire."
+  bha:
+    terms: [salicylic acid, betaine salicylate]
+    explain:
+      en: "A BHA: oil-soluble, so it gets into pores, which helps with blackheads and breakouts. Can dry skin if overused."
+      fr: "Un BHA : soluble dans l'huile, il entre dans les pores, utile contre les points noirs et boutons. Peut assécher si on en abuse."
+  vitamin_c:
+    terms: [vitamin c, ethyl ascorbic acid, tetrahexyldecyl ascorbate]
+    explain:
+      en: "Vitamin C: an antioxidant that brightens and supports sunscreen by day. Some forms can sting."
+      fr: "Vitamine C : un antioxydant qui donne de l'éclat et complète la crème solaire le jour. Certaines formes picotent."
+  benzoyl_peroxide:
+    terms: [benzoyl peroxide]
+    explain:
+      en: "Benzoyl peroxide: kills acne bacteria, but can dry skin and bleach fabrics. Avoid layering with a retinoid unless the formula is designed for it."
+      fr: "Peroxyde de benzoyle : tue les bactéries de l'acné, peut assécher et décolorer les tissus. Évite de le superposer à un rétinoïde sauf formule prévue."
+  azelaic_acid:
+    terms: [azelaic acid]
+    explain:
+      en: "Azelaic acid: gentle help for redness, marks and breakouts. Usually well tolerated."
+      fr: "Acide azélaïque : aide en douceur contre les rougeurs, marques et boutons. Généralement bien toléré."
+
+# Pairs that are often too much in the same routine
+conflicts:
+  - pair: [retinoids, ahas]
+    en: "A strong retinoid and a strong acid on the same night can be too much, so alternate them unless the formula is built for it."
+    fr: "Un rétinoïde et un acide forts le même soir, c'est souvent trop : alterne-les sauf si la formule est prévue pour."
+  - pair: [retinoids, bha]
+    en: "A strong retinoid and a strong acid on the same night can be too much, so alternate them unless the formula is built for it."
+    fr: "Un rétinoïde et un acide forts le même soir, c'est souvent trop : alterne-les sauf si la formule est prévue pour."
+  - pair: [retinoids, benzoyl_peroxide]
+    en: "Benzoyl peroxide can break down some retinoids and adds dryness, so it's safer to use them at different times."
+    fr: "Le peroxyde de benzoyle peut dégrader certains rétinoïdes et assèche : mieux vaut les utiliser à des moments différents."

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Glowbi voices</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 680px; margin: 0 auto; padding: 24px 16px; color: #3a2440; background: #fff7f9; }
+  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 15px; margin: 24px 0 8px; } p { margin: 0 0 16px; color: #6b5570; }
+  label { display: block; margin-bottom: 12px; font-size: 14px; }
+  textarea, input[type=text] { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #d9c4d4; border-radius: 8px; font: inherit; background: #fff; color: inherit; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f0dfe8; }
+  .row code { flex: 1; overflow-wrap: anywhere; } .row small { color: #6b5570; min-width: 96px; text-align: right; }
+  button { padding: 6px 16px; border: 1px solid #c86b95; border-radius: 8px; background: #fff; color: #8e3a63; font: inherit; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: wait; }
+</style>
+</head>
+<body>
+<h1>Glowbi voices</h1>
+<p>Dev page. Same sentence, each voice. Pick one, then set <code>TTS_VOICE_EN</code> in <code>.env</code> and restart.</p>
+<label>Sentence <textarea id="text" rows="2">Hey Fatma! Let's find a gentle cleanser for your skin today.</textarea></label>
+<label>Pitch lift, playback rate: <b id="rateOut"></b><br /><input id="rate" type="range" min="1" max="1.3" step="0.01" style="width:100%" /></label>
+<h2>English (Kokoro)</h2><div id="en"></div>
+<h2>Blends</h2><div id="blends"></div>
+<label>Your own blend <input id="custom" type="text" value="af_heart:50,af_nicole:50" /></label>
+<button id="customBtn">Play blend</button> <small id="customStatus"></small>
+<h2>French (Kokoro)</h2><div id="fr"></div>
+<h2>English (Groq Orpheus)</h2>
+<p>Set <code>TTS_GROQ_VOICE</code> to pick one. Your key allows 100 Orpheus requests a day, and replayed samples are cached. No speed control: the pitch lift speeds these voices up too.</p>
+<div id="groq"></div>
+<h2>Orpheus giggle tests (not documented by Groq, so listen)</h2><div id="giggle"></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const audio = new Audio();
+audio.preservesPitch = audio.mozPreservesPitch = audio.webkitPreservesPitch = false;
+$("rate").oninput = () => { $("rateOut").textContent = $("rate").value; };
+fetch("/api/config").then((r) => r.json()).then((c) => { $("rate").value = c.tts_rate; $("rate").oninput(); });
+
+async function play(btn, status, body) {
+  btn.disabled = true; status.textContent = "…";
+  const t0 = performance.now();
+  try {
+    const r = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(await r.text());
+    audio.src = URL.createObjectURL(await r.blob());
+    audio.defaultPlaybackRate = audio.playbackRate = +$("rate").value;
+    await audio.play();
+    status.textContent = `${((performance.now() - t0) / 1000).toFixed(1)} s, ${r.headers.get("X-TTS-Engine")}, ${r.headers.get("X-TTS-Cache")}`;
+  } catch (e) { status.textContent = "failed"; console.error(e); }
+  btn.disabled = false;
+}
+function row(parent, label, body) {
+  const d = document.createElement("div"); d.className = "row";
+  const c = document.createElement("code"); c.textContent = label;
+  const s = document.createElement("small"); const b = document.createElement("button"); b.textContent = "Play";
+  b.onclick = () => play(b, s, { text: $("text").value, ...body });
+  d.append(c, s, b); $(parent).appendChild(d);
+}
+["af_heart", "af_bella", "af_nicole", "af_sky"].forEach((v) => row("en", v, { voice: v, engine: "kokoro" }));
+["af_heart:60,af_sky:40", "af_heart:50,af_bella:50", "af_nicole:50,af_sky:50"].forEach((v) => row("blends", v, { voice: v, engine: "kokoro" }));
+row("fr", "ff_siwis", { lang: "fr", voice: "ff_siwis", engine: "kokoro" });
+["autumn", "diana", "hannah", "austin", "daniel", "troy"].forEach((v) => row("groq", v, { voice: v, engine: "groq" }));
+row("giggle", "[giggle] hehe, that tickles!", { text: "[giggle] hehe, that tickles!", voice: "hannah", engine: "groq" });
+row("giggle", "<giggle> hehe, that tickles!", { text: "<giggle> hehe, that tickles!", voice: "hannah", engine: "groq" });
+row("giggle", "[laughing] hihi", { text: "[laughing] hihi", voice: "hannah", engine: "groq" });
+$("customBtn").onclick = () => play($("customBtn"), $("customStatus"), { text: $("text").value, voice: $("custom").value, engine: "kokoro" });
+</script>
+</body>
+</html>
