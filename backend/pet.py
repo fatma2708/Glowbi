@@ -2,6 +2,7 @@
 import json
 import re
 import time
+import threading
 
 from backend import config
 
@@ -19,6 +20,7 @@ DEFAULT_APPEARANCE = {"color": "pink", "eyes": "round", "mouth": "smile", "cheek
 DEFAULT_SETTINGS = {"music_on": True, "music_volume": 0.3, "music_track": "generated", "sfx_volume": 0.7}
 DEFAULT_STREAKS = {"morning": {"count": 0, "last": None}, "night": {"count": 0, "last": None}}
 TICKLE_REWARDS_PER_MINUTE = 3
+_STATE_LOCK = threading.RLock()
 DEFAULT = {"name": "Glowbi", "pet_name": "Glowbi", "user_name": None, "xp": 0, "happiness": 70.0, "updated": time.time(),
            "chats": 0, "profile": DEFAULT_PROFILE, "history": [], "appearance": DEFAULT_APPEARANCE, "settings": DEFAULT_SETTINGS,
            "coins": 0, "owned": [], "streaks": DEFAULT_STREAKS, "tickles": []}
@@ -35,7 +37,11 @@ HAIR_CONCERNS = ["frizz", "dandruff", "hair loss", "split ends", "pellicules", "
 
 def _load() -> dict:
     if config.PET_STATE_PATH.exists():
-        state = json.loads(config.PET_STATE_PATH.read_text(encoding="utf-8"))
+        try:
+            state = json.loads(config.PET_STATE_PATH.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"[pet] invalid state file ({e.__class__.__name__}); resetting state")
+            state = {}
         defaults = json.loads(json.dumps(DEFAULT))
         look = state.get("appearance", {})
         merged = {**defaults, **state, "profile": {**DEFAULT_PROFILE, **state.get("profile", {})},
@@ -52,16 +58,20 @@ def _load() -> dict:
 
 
 def save(state: dict):
-    config.PET_STATE_PATH.write_text(json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8")
+    with _STATE_LOCK:
+        temp = config.PET_STATE_PATH.with_suffix(".json.tmp")
+        temp.write_text(json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8")
+        temp.replace(config.PET_STATE_PATH)
 
 
 def get() -> dict:
-    state = _load()
-    hours = (time.time() - state["updated"]) / 3600
-    state["happiness"] = max(0.0, state["happiness"] - hours * HAPPINESS_DECAY_PER_HOUR)
-    state["updated"] = time.time()
-    save(state)
-    return state
+    with _STATE_LOCK:
+        state = _load()
+        hours = (time.time() - state["updated"]) / 3600
+        state["happiness"] = max(0.0, state["happiness"] - hours * HAPPINESS_DECAY_PER_HOUR)
+        state["updated"] = time.time()
+        save(state)
+        return state
 
 
 def level(xp: int) -> int:
