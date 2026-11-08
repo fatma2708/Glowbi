@@ -4,7 +4,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote_plus
 
-from backend.rag.openbeautyfacts import product_image
+from backend.rag.openbeautyfacts import product_image, product_to_text, search_products
 from backend.rag.store import store
 
 MAX_NOTES, MAX_CARDS = 6, 3
@@ -117,14 +117,41 @@ def find(message: str, profile: dict) -> list[dict]:
         return not _avoided(_ingredients(text), avoid)
 
     query = f"{message} {profile.get('skin_type') or ''}"
-    found = []
-    for row in store.products(query, keep, MAX_NOTES):
+    found = store.products(query, keep, MAX_NOTES)
+    if not found:
+        live_rows = []
+        for product_type in types:
+            search_term = {
+                "cleanser": "facial cleanser",
+                "moisturizer": "facial moisturizer",
+                "sunscreen": "facial sunscreen",
+                "serum": "facial serum",
+                "toner": "facial toner",
+                "shampoo": "shampoo",
+                "conditioner": "hair conditioner",
+                "hair_care": "hair care",
+            }.get(product_type, product_type)
+            for raw in search_products(search_term, 6):
+                item = product_to_text(raw)
+                if not item:
+                    continue
+                url = raw.get("url") or f"https://world.openbeautyfacts.org/product/{raw.get('code')}"
+                live_rows.append({
+                    "text": item[1], "title": item[0], "source": "Open Beauty Facts",
+                    "category": "products", "url": url,
+                    "meta": {"brand": raw.get("brands"), "product_url": url, "image_url": None,
+                             "price": None, "source": "Open Beauty Facts"},
+                })
+        found = [row for row in live_rows if keep(row)][:MAX_NOTES]
+    recommendations = []
+    for row in found:
         name, _, title_brand = row["title"].partition(" — ")
         meta = row["meta"]
         ingredients = _ingredients(row["text"])
-        found.append({**row, "name": html.unescape(name).strip(), "brand": _brand(meta.get("brand") or title_brand),
-                      "ingredients": ingredients, "check_label": bool(avoid) and not ingredients})
-    return found
+        recommendations.append({**row, "name": html.unescape(name).strip(),
+                                 "brand": _brand(meta.get("brand") or title_brand),
+                                 "ingredients": ingredients, "check_label": bool(avoid) and not ingredients})
+    return recommendations
 
 
 def notes(products: list[dict]) -> str:

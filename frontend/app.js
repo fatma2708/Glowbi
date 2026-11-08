@@ -286,14 +286,20 @@ function speakBrowser(clean) {
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(clean);
   u.voice = pickVoice(); u.lang = state.lang === "fr" ? "fr-FR" : "en-US";
-  u.pitch = 1.75; u.rate = 1.07;  // chipmunk-cute
+  u.pitch = 1.22; u.rate = 1.02;
   u.onstart = startTalking; u.onend = stopTalking; u.onerror = stopTalking;
   speechSynthesis.speak(u);
 }
 function pickVoice() {
   const lang = state.lang === "fr" ? "fr" : "en";
   const voices = speechSynthesis.getVoices();
-  return voices.find((voice) => voice.lang.toLowerCase().startsWith(lang)) || null;
+  const matching = voices.filter((voice) => voice.lang.toLowerCase().startsWith(lang));
+  const preferred = ["Samantha", "Ava", "Karen", "Jenny", "Aria", "Google US English", "Microsoft Zira"];
+  return matching.sort((a, b) => {
+    const ai = preferred.findIndex((name) => a.name.includes(name));
+    const bi = preferred.findIndex((name) => b.name.includes(name));
+    return (bi < 0 ? preferred.length : bi) - (ai < 0 ? preferred.length : ai);
+  })[0] || null;
 }
 function shutUp() {   // barge-in: the mic button, a new message or the voice toggle all land here
   tts.run++; tts.abort?.abort();
