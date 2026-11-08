@@ -42,6 +42,13 @@ def _load() -> dict:
         except (OSError, json.JSONDecodeError) as e:
             print(f"[pet] invalid state file ({e.__class__.__name__}); resetting state")
             state = {}
+        if not isinstance(state, dict):
+            print("[pet] state is not an object; resetting state")
+            state = {}
+        if not isinstance(state.get("updated"), (int, float)):
+            state["updated"] = time.time()
+        if not isinstance(state.get("profile"), dict):
+            state["profile"] = {}
         defaults = json.loads(json.dumps(DEFAULT))
         look = state.get("appearance", {})
         merged = {**defaults, **state, "profile": {**DEFAULT_PROFILE, **state.get("profile", {})},
