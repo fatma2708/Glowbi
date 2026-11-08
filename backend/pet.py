@@ -42,10 +42,11 @@ def _load() -> dict:
                   "appearance": {**defaults["appearance"], **look, "slots": {**defaults["appearance"]["slots"], **look.get("slots", {})}},
                   "settings": {**defaults["settings"], **state.get("settings", {})},
                   "streaks": {**defaults["streaks"], **state.get("streaks", {})}}
-        # files from before pet_name/user_name only have "name" and profile.name
+        # User names are intentionally session-local and are never restored from disk.
         merged["pet_name"] = state.get("pet_name") or state.get("name") or "Glowbi"
         merged["name"] = merged["pet_name"]
-        merged["user_name"] = state.get("user_name") or merged["profile"].get("name")
+        merged["user_name"] = None
+        merged["profile"]["name"] = None
         return merged
     return json.loads(json.dumps(DEFAULT))
 
@@ -114,10 +115,10 @@ def update_profile(**fields) -> dict:
 
 
 def set_names(state: dict, user_name: str | None = None, pet_name: str | None = None):
-    if user_name:
-        state["user_name"] = state["profile"]["name"] = user_name.strip()[:24]
     if pet_name:
         state["pet_name"] = state["name"] = pet_name.strip()[:24]
+    state["user_name"] = None
+    state["profile"]["name"] = None
 
 
 def remember(state: dict, field: str, value: str):

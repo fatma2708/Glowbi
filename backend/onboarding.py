@@ -122,22 +122,22 @@ def _render(i: int, p: dict, lang: str, prefix: str = "") -> dict:
     chips = [{"value": o["value"], "label": o[lang]} for o in s.get("options", s.get("chips", []))]
     live = pet.get()
     return {"done": False, "id": s["id"], "type": s["type"], "emotion": s["emotion"],
-            "question": prefix + s["q"][lang].format(name=p.get("name") or ""), "options": chips,
+            "question": prefix + s["q"][lang].format(name=""), "options": chips,
             "progress": round(100 * applicable.index(i) / len(applicable)) if i in applicable else 0,
-            "user_name": live["user_name"] or "", "pet_name": live["pet_name"]}
+            "user_name": "", "pet_name": live["pet_name"]}
 
 
 def _summary(p: dict, lang: str) -> str:
     skin = p.get("skin_type") or "?"
     if lang == "fr":
         fr = {"oily": "grasse", "dry": "sèche", "combination": "mixte", "normal": "normale"}
-        txt = f"Yay, merci {p.get('name') or ''} ! Je retiens : peau {fr.get(skin, skin)}"
+        txt = f"Yay, merci ! Je retiens : peau {fr.get(skin, skin)}"
         if p.get("sensitive"):
             txt += " et sensible"
         if p.get("concerns"):
             txt += f", et tu veux travailler sur : {', '.join(p['concerns'])}"
         return txt + ". Maintenant, pose-moi toutes tes questions beauté !"
-    txt = f"Yay, thank you {p.get('name') or ''}! Got it: {skin} skin"
+    txt = f"Yay, thank you! Got it: {skin} skin"
     if p.get("sensitive"):
         txt += " that's on the sensitive side"
     if p.get("concerns"):
@@ -184,10 +184,8 @@ def answer(text: str = "", values: list[str] | None = None, lang: str = "en") ->
             chosen = [t[:40]]  # keep their own words, e.g. "melasma on my cheeks"
         p[s["id"]] = [c for c in chosen if c != "none"]
     elif s["type"] == "names":  # typed only: [your name, pet name]
-        user_name = (values or [""])[0].strip()
-        if not user_name:
-            return _render(i, p, lang, retry)
-        pet.set_names(state, user_name, (values[1] if len(values) > 1 else "").strip() or "Glowbi")
+        pet_name = (values[1] if values and len(values) > 1 else "").strip() or "Glowbi"
+        pet.set_names(state, None, pet_name)
     elif s["type"] == "text":
         if s["id"] == "avoid":
             t = re.sub(r"^(i'?m |i am )?(allergic to|avoid|je suis allergique (à|au|aux)|j'évite)\s*", "", t)

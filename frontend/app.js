@@ -294,7 +294,11 @@ function pickVoice() {
   const lang = state.lang === "fr" ? "fr" : "en";
   const voices = speechSynthesis.getVoices();
   const matching = voices.filter((voice) => voice.lang.toLowerCase().startsWith(lang));
-  const preferred = ["Samantha", "Ava", "Karen", "Jenny", "Aria", "Google US English", "Microsoft Zira"];
+  const preferred = ["Samantha", "Ava", "Karen", "Jenny", "Aria", "Zira", "Google US English", "Microsoft Hazel"];
+  const masculine = /(^|[\s-])(David|Daniel|George|Gordon|Alex|Mark|Michael|Richard|James|Thomas|Guy|男性)([\s-]|$)/i;
+  const female = /(^|[\s-])(Samantha|Ava|Karen|Jenny|Aria|Zira|Hazel|Susan|Female|女性)([\s-]|$)/i;
+  const femaleMatching = matching.filter((voice) => female.test(voice.name) && !masculine.test(voice.name));
+  if (femaleMatching.length) matching.splice(0, matching.length, ...femaleMatching);
   return matching.sort((a, b) => {
     const ai = preferred.findIndex((name) => a.name.includes(name));
     const bi = preferred.findIndex((name) => b.name.includes(name));
@@ -416,12 +420,10 @@ function renderStep(step) {
     const card = document.createElement("form"); card.className = "names-card";
     const field = (en, fr, value, name) => { const l = document.createElement("label"); l.textContent = T(en, fr);
       const i = document.createElement("input"); i.name = name; i.value = value; i.maxLength = 24; i.autocomplete = "off"; l.appendChild(i); card.appendChild(l); return i; };
-    const you = field("Your name", "Ton prénom", step.user_name || "", "you");
     const her = field("Name your pet", "Nomme ton animal", step.pet_name || "Glowbi", "pet");
     const go = document.createElement("button"); go.className = "pill"; go.textContent = T("Continue", "Continuer"); card.appendChild(go);
     card.onsubmit = (e) => { e.preventDefault();
-      if (!you.value.trim()) { toast(T("Type your name first", "Écris d'abord ton prénom")); return you.focus(); }
-      answerStep({ values: [you.value, her.value], label: you.value }).then(() => api("/api/pet")).then(renderPet); };
+      answerStep({ values: ["", her.value], label: her.value }).then(() => api("/api/pet")).then(renderPet); };
     chips.appendChild(card);
     $("msg").placeholder = T("Type your names above", "Écris vos noms au-dessus");
     return;
@@ -594,7 +596,7 @@ $("logBtn").addEventListener("click", () => $("log").classList.toggle("hidden"))
 
 $("profileBtn").addEventListener("click", () => {
   const p = state.petData?.profile || {}; const f = $("profileForm");
-  f.user_name.value = state.petData?.user_name || ""; f.pet_name.value = state.petData?.pet_name || "";
+  f.pet_name.value = state.petData?.pet_name || "";
   f.skin_type.value = p.skin_type || ""; f.hair_type.value = p.hair_type || "";
   f.concerns.value = (p.concerns || []).join(", "); f.avoid.value = (p.avoid || []).join(", ");
   $("profileDlg").showModal();
@@ -604,7 +606,7 @@ $("profileDlg").addEventListener("close", async () => {
   if (v === "redo") { await startOnboarding(true); return; }
   if (v !== "save") return;
   const f = $("profileForm"); const list = (s) => s.split(",").map((x) => x.trim()).filter(Boolean);
-  await api("/api/pet/names", { user_name: f.user_name.value.trim() || null, pet_name: f.pet_name.value.trim() || null });
+  await api("/api/pet/names", { pet_name: f.pet_name.value.trim() || null });
   renderPet(await api("/api/profile", { skin_type: f.skin_type.value || null, hair_type: f.hair_type.value || null,
     concerns: list(f.concerns.value), avoid: list(f.avoid.value) }));
   setEmotion("love", 2500); floaters(["heart"], 4);
