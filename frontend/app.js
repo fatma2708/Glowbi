@@ -290,6 +290,11 @@ function speakBrowser(clean) {
   u.onstart = startTalking; u.onend = stopTalking; u.onerror = stopTalking;
   speechSynthesis.speak(u);
 }
+function pickVoice() {
+  const lang = state.lang === "fr" ? "fr" : "en";
+  const voices = speechSynthesis.getVoices();
+  return voices.find((voice) => voice.lang.toLowerCase().startsWith(lang)) || null;
+}
 function shutUp() {   // barge-in: the mic button, a new message or the voice toggle all land here
   tts.run++; tts.abort?.abort();
   tts.audio?.pause(); tts.finish?.(); stopThinking();
